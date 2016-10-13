@@ -8,10 +8,9 @@ import android.app.TimePickerDialog;
 
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.example.android.lesson4alarm.MainActivity;
+import com.example.android.lesson4alarm.Activity.MainActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -44,5 +43,6 @@ public class DialodFragmentSetTime extends DialogFragment implements TimePickerD
         mainActivity.setAlarmTime();
         mainActivity.writeToSharedPrefAlarmState(true);
         mainActivity.setAlarmStateIcon();
+        mainActivity.startAlarmService();
     }
 }

@@ -1,7 +1,8 @@
-package com.example.android.lesson4alarm;
+package com.example.android.lesson4alarm.Activity;
 
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +12,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
+import com.example.android.lesson4alarm.R;
+import com.example.android.lesson4alarm.Services.AlarmService;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -64,6 +67,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.alarm_button:
                 writeToSharedPrefAlarmState(!mAlarmState);
                 setAlarmStateIcon();
+                if(mAlarmState) {
+                    startAlarmService();
+                } else {
+                    stopAlarmService();
+                }
+
                 break;
         }
     }
@@ -114,6 +123,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "SignInActivity onDestroy() called");
+    }
+
+    public void startAlarmService() {
+        Intent intent = new Intent(this, AlarmService.class);
+        startService(intent);
+    }
+
+    public void stopAlarmService() {
+        Intent intent = new Intent(this, AlarmService.class);
+        stopService(intent);
     }
 
 }
