@@ -15,6 +15,10 @@ import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.Services.AlarmService;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     TextView mTime;
@@ -22,14 +26,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     SharedPreferences.Editor editor;
     ImageButton mAlarmButton;
     Boolean mAlarmState;
+    SimpleDateFormat mTimeFormat;
+    Calendar mCalendar;
 
 
-    private static final String TAG = "QuizActivity";
+    private static final String TAG = "log";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        mCalendar = Calendar.getInstance();
 
         mTime = (TextView) findViewById(R.id.time);
         mTime.setOnClickListener(this);
@@ -40,13 +49,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sharedPref = getSharedPreferences(getString(R.string.app_preferences), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
 
-        mAlarmState = sharedPref.getBoolean("alarm state", false);
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
+        mAlarmState = sharedPref.getBoolean("alarm state", false);
         setAlarmTime();
         setAlarmStateIcon();
 
@@ -67,10 +77,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.alarm_button:
                 writeToSharedPrefAlarmState(!mAlarmState);
                 setAlarmStateIcon();
-                if(mAlarmState) {
+                if (mAlarmState) {
                     startAlarmService();
                 } else {
                     stopAlarmService();
+                    Log.v("log", "Main Act stopAlarmServ");
                 }
 
                 break;
@@ -78,11 +89,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void setAlarmTime() {
-        mTime.setText(sharedPref.getString("alarm time", "12:00"));
+        int hours = sharedPref.getInt("alarm hour", 12);
+        int minutes = sharedPref.getInt("alarm minute", 0);
+        mTime.setText(String.format("%02d:%02d", hours, minutes));
     }
 
-    public void writeToSharedPrefAlarmTime(String alarmTime) {
-        editor.putString("alarm time", alarmTime);
+    public void writeToSharedPrefAlarmTime(int hourOfDay, int minute) {
+        editor.putInt("alarm hour", hourOfDay);
+        editor.putInt("alarm minute", minute);
         editor.commit();
     }
 
@@ -133,6 +147,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopAlarmService() {
         Intent intent = new Intent(this, AlarmService.class);
         stopService(intent);
+    }
+
+    public String converCalendarToStringa(Calendar calendar) {
+        return mTimeFormat.format(calendar.getTime());
     }
 
 }

@@ -20,14 +20,17 @@ import static java.lang.String.format;
 
 public class DialodFragmentSetTime extends DialogFragment implements TimePickerDialog.OnTimeSetListener {
 
-    SimpleDateFormat timeFormat;
+    SimpleDateFormat mTimeFormat;
     MainActivity mainActivity;
+    Calendar mSetCalendar;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the current time as the default values for the picker
 
         mainActivity = (MainActivity) getActivity();
+
+        mTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
         final Calendar c = Calendar.getInstance();
         int hour = c.get(Calendar.HOUR_OF_DAY);
@@ -39,10 +42,14 @@ public class DialodFragmentSetTime extends DialogFragment implements TimePickerD
     }
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        mainActivity.writeToSharedPrefAlarmTime(String.format("%02d:%02d", hourOfDay, minute));
+
+        mainActivity.writeToSharedPrefAlarmTime(hourOfDay, minute);
         mainActivity.setAlarmTime();
         mainActivity.writeToSharedPrefAlarmState(true);
         mainActivity.setAlarmStateIcon();
         mainActivity.startAlarmService();
     }
+
+
+    
 }
