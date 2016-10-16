@@ -4,25 +4,18 @@ package com.example.android.lesson4alarm.Fragments;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
-
-
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
-
 import com.example.android.lesson4alarm.Activity.MainActivity;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import static java.lang.String.format;
 
 
 public class DialodFragmentSetTime extends DialogFragment implements TimePickerDialog.OnTimeSetListener {
 
     SimpleDateFormat mTimeFormat;
     MainActivity mainActivity;
-    Calendar mSetCalendar;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

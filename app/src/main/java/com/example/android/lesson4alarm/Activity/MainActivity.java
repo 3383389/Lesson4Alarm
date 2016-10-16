@@ -6,16 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
 import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.Services.AlarmService;
-
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -29,8 +25,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     SimpleDateFormat mTimeFormat;
     Calendar mCalendar;
 
-
-    private static final String TAG = "log";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +53,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAlarmState = sharedPref.getBoolean("alarm state", false);
         setAlarmTime();
         setAlarmStateIcon();
-
-        Log.d(TAG, "SignInActivity onResume() called");
     }
 
     public void showTimePickerDialog() {
@@ -81,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     startAlarmService();
                 } else {
                     stopAlarmService();
-                    Log.v("log", "Main Act stopAlarmServ");
                 }
 
                 break;
@@ -114,31 +105,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d(TAG, "SignInActivity onStart() called");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG, "SignInActivity onPause() called");
-    }
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d(TAG, "SignInActivity onStop() called");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "SignInActivity onDestroy() called");
-    }
-
     public void startAlarmService() {
         Intent intent = new Intent(this, AlarmService.class);
         startService(intent);
@@ -147,10 +113,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopAlarmService() {
         Intent intent = new Intent(this, AlarmService.class);
         stopService(intent);
-    }
-
-    public String converCalendarToStringa(Calendar calendar) {
-        return mTimeFormat.format(calendar.getTime());
     }
 
 }

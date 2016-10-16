@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 import com.example.android.lesson4alarm.Activity.AlarmActivity;
@@ -35,7 +34,6 @@ public class AlarmService extends Service {
 
         @Override
         public void run() {
-            Log.v("log", "WaitForAlarmInNewThread start");
 
 
             alarmDateTimeInMillis = getAlarmDateTime().getTimeInMillis();
@@ -44,7 +42,6 @@ public class AlarmService extends Service {
                 synchronized (this) {
                     try {
                         wait(1000);
-                        Log.v("log", "1 socond");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -53,7 +50,6 @@ public class AlarmService extends Service {
 
             if (mAlarmStatus) {
                 startAlarm();
-                Log.v("log", "startAlarm");
             }
         }
 
@@ -76,7 +72,6 @@ public class AlarmService extends Service {
 
         new WaitForAlarmInNewThread();
 
-        Log.v("log", "OnStartCommand done");
         return START_STICKY;
     }
 
@@ -92,7 +87,6 @@ public class AlarmService extends Service {
         editor.putBoolean("alarm state", false);
         editor.commit();
         Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
-        Log.v("log", "service onDestroy");
     }
 
     public void startAlarm() {
@@ -103,18 +97,17 @@ public class AlarmService extends Service {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON +
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         startActivity(intent);
-        Log.v("log", "startAlarm done");
 
         stopSelf();
-        Log.v("log", "stopSelf");
     }
 
 
     public Calendar getAlarmDateTime() {
         int hourOfDay = sharedPref.getInt("alarm hour", 0);
         int minute = sharedPref.getInt("alarm minute", 0);
-        Calendar mSetCalendar = Calendar.getInstance();
 
+        Calendar mSetCalendar = Calendar.getInstance();
+    // если выбраное время меньше или равняется текущему то будильниик сработает на следующий день
         if (mSetCalendar.get(Calendar.HOUR_OF_DAY) > hourOfDay ||
                 (mSetCalendar.get(Calendar.HOUR_OF_DAY) == hourOfDay && mSetCalendar.get(Calendar.MINUTE) >= minute)) {
             mSetCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
