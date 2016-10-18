@@ -1,4 +1,18 @@
 <resources>
     <string name="app_name">Lesson4Alarm</string>
     <string name="app_preferences">mySettings</string>
+
+    <string name="repeat">Repeat</string>
+    <string name="sunday">Su</string>
+    <string name="monday">Mo</string>
+    <string name="tuesday">Tu</string>
+    <string name="wednesday">We</string>
+    <string name="thursday">Th</string>
+    <string name="friday">Fr</string>
+    <string name="saturday">Sa</string>
+
+
+    <string name="set_alarm">Set Alarm</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
 </resources>

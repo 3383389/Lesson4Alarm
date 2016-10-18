@@ -3,7 +3,7 @@
     package="com.example.android.lesson4alarm">
 
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
@@ -13,11 +13,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <service android:name=".Services.AlarmService"
+        <service
+            android:name=".Services.AlarmService"
             android:enabled="true"
             android:exported="false"
-            android:process=""/>
+            android:process="" />
 
         <receiver android:name=".Services.BootCompletedIntentReceiver">
             <intent-filter>
@@ -32,7 +32,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.AlarmActivity"></activity>
+        <activity android:name=".Activity.AlarmActivity" />
+        <activity android:name=".Activity.SetAlarmActivity"></activity>
     </application>
 
 </manifest>

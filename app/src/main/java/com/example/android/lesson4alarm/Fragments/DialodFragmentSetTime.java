@@ -1,34 +1,28 @@
 package com.example.android.lesson4alarm.Fragments;
 
-
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
-
-
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
-import com.example.android.lesson4alarm.Activity.MainActivity;
+import com.example.android.lesson4alarm.Activity.SetAlarmActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import static java.lang.String.format;
 
 
 public class DialodFragmentSetTime extends DialogFragment implements TimePickerDialog.OnTimeSetListener {
 
     SimpleDateFormat mTimeFormat;
-    MainActivity mainActivity;
-    Calendar mSetCalendar;
+    SetAlarmActivity setAlarmActivity;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the current time as the default values for the picker
 
-        mainActivity = (MainActivity) getActivity();
+        setAlarmActivity = (SetAlarmActivity) getActivity();
 
         mTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
@@ -42,12 +36,9 @@ public class DialodFragmentSetTime extends DialogFragment implements TimePickerD
     }
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-
-        mainActivity.writeToSharedPrefAlarmTime(hourOfDay, minute);
-        mainActivity.setAlarmTime();
-        mainActivity.writeToSharedPrefAlarmState(true);
-        mainActivity.setAlarmStateIcon();
-        mainActivity.startAlarmService();
+        setAlarmActivity.newAlarm.hourOfDay = hourOfDay;
+        setAlarmActivity.newAlarm.minute = minute;
+        setAlarmActivity.setAlarmTime();
     }
 
 

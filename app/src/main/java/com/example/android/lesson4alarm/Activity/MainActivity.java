@@ -1,33 +1,45 @@
 package com.example.android.lesson4alarm.Activity;
 
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
+import com.example.android.lesson4alarm.Adapter.MyRecyclerViewAdapter;
+import com.example.android.lesson4alarm.Alarm;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.Services.AlarmService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import java.text.ParseException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import android.support.v7.widget.RecyclerView;
 
-    TextView mTime;
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, MyRecyclerViewAdapter.OnItemClick {
+
+
+    ImageButton mAddAlarmButton;
+
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    ImageButton mAlarmButton;
-    Boolean mAlarmState;
-    SimpleDateFormat mTimeFormat;
-    Calendar mCalendar;
+
+    Gson gson;
+    ArrayList<Alarm> mAlarms;
+
+
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
 
     private static final String TAG = "log";
@@ -37,17 +49,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        mCalendar = Calendar.getInstance();
 
-        mTime = (TextView) findViewById(R.id.time);
-        mTime.setOnClickListener(this);
 
-        mAlarmButton = (ImageButton) findViewById(R.id.alarm_button);
-        mAlarmButton.setOnClickListener(this);
-
+        gson = new Gson();
+        mAlarms = new ArrayList<>();
         sharedPref = getSharedPreferences(getString(R.string.app_preferences), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+
+        mAddAlarmButton = (ImageButton) findViewById(R.id.add_alarm_button);
+        mAddAlarmButton.setOnClickListener(this);
+
+
+
+
+
 
 
     }
@@ -56,63 +76,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onResume() {
         super.onResume();
 
-        mAlarmState = sharedPref.getBoolean("alarm state", false);
-        setAlarmTime();
-        setAlarmStateIcon();
+        getAlarmsFromShPrefAndConvertFromGson();
+
+        showAlarms();
+
+        startAlarmService();
+
 
         Log.d(TAG, "SignInActivity onResume() called");
     }
 
-    public void showTimePickerDialog() {
-        DialogFragment newFragment = new DialodFragmentSetTime();
-        newFragment.show(getFragmentManager(), "time");
+
+    public void getAlarmsFromShPrefAndConvertFromGson() {
+        String json = sharedPref.getString("Alarms", "empty");
+
+        //if alarms empty adds new default alarm
+        if (json.equals("empty")) {
+            Alarm alarm = new Alarm();
+            mAlarms.add(alarm);
+            String s = gson.toJson(mAlarms);
+            editor.putString("Alarms", s);
+            editor.commit();
+            json = sharedPref.getString("Alarms", "empty");
+        }
+
+        Type type = new TypeToken<ArrayList<Alarm>>() {
+        }.getType();
+        mAlarms = gson.fromJson(json, type);
+
     }
+
+    public void convertAlarmsToGsonAndSaveToShPref() {
+        String json = gson.toJson(mAlarms);
+        editor.putString("Alarms", json);
+        editor.commit();
+    }
+
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.time:
-                showTimePickerDialog();
-                break;
-            case R.id.alarm_button:
-                writeToSharedPrefAlarmState(!mAlarmState);
-                setAlarmStateIcon();
-                if (mAlarmState) {
-                    startAlarmService();
-                } else {
-                    stopAlarmService();
-                    Log.v("log", "Main Act stopAlarmServ");
-                }
-
+            case R.id.add_alarm_button:
+                Intent intent = new Intent(this, SetAlarmActivity.class);
+                startActivity(intent);
                 break;
         }
     }
 
-    public void setAlarmTime() {
-        int hours = sharedPref.getInt("alarm hour", 12);
-        int minutes = sharedPref.getInt("alarm minute", 0);
-        mTime.setText(String.format("%02d:%02d", hours, minutes));
-    }
-
-    public void writeToSharedPrefAlarmTime(int hourOfDay, int minute) {
-        editor.putInt("alarm hour", hourOfDay);
-        editor.putInt("alarm minute", minute);
-        editor.commit();
-    }
-
-    public void writeToSharedPrefAlarmState(Boolean alarmState) {
-        mAlarmState = alarmState;
-        editor.putBoolean("alarm state", alarmState);
-        editor.commit();
-    }
-
-    public void setAlarmStateIcon() {
-        if (mAlarmState) {
-            mAlarmButton.setImageResource(R.mipmap.alarm_active);
-        } else {
-            mAlarmButton.setImageResource(R.mipmap.alarm_not_active);
-        }
-    }
 
     @Override
     public void onStart() {
@@ -149,8 +159,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         stopService(intent);
     }
 
-    public String converCalendarToStringa(Calendar calendar) {
-        return mTimeFormat.format(calendar.getTime());
+    public void showAlarms() {
+        mAdapter = new MyRecyclerViewAdapter(mAlarms, this);
+        mRecyclerView.setAdapter(mAdapter);
     }
 
+
+    @Override
+    public void onItemClickListenerRedactor(int position) {
+        Intent intent = new Intent(this, SetAlarmActivity.class);
+        intent.putExtra("position", position);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onItemClickListenerStatus(int position) {
+        mAlarms.get(position).status = !mAlarms.get(position).status;
+        convertAlarmsToGsonAndSaveToShPref();
+
+        showAlarms();
+        Log.v("log", "onItemClickListenerStatus ok");
+    }
 }
