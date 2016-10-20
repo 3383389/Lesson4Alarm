@@ -1,74 +1,43 @@
 package com.example.android.lesson4alarm.Activity;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.TextView;
-
-import com.example.android.lesson4alarm.Adapter.MyRecyclerViewAdapter;
-import com.example.android.lesson4alarm.Alarm;
+import com.example.android.lesson4alarm.Adapter.RecyclerViewAdapter;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.Services.AlarmService;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-
+import com.example.android.lesson4alarm.SingletonAlarm;
 import android.support.v7.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, MyRecyclerViewAdapter.OnItemClick {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, RecyclerViewAdapter.OnItemClick {
 
+    private static final String TAG = "log";
 
-    ImageButton mAddAlarmButton;
-
-    SharedPreferences sharedPref;
-    SharedPreferences.Editor editor;
-
-    Gson gson;
-    ArrayList<Alarm> mAlarms;
-
-
+    private ImageButton mAddAlarmButton;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-
-
-    private static final String TAG = "log";
+    private SingletonAlarm sAlarms;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-        gson = new Gson();
-        mAlarms = new ArrayList<>();
-        sharedPref = getSharedPreferences(getString(R.string.app_preferences), Context.MODE_PRIVATE);
-        editor = sharedPref.edit();
+        sAlarms = SingletonAlarm.getInstatce();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-
         mAddAlarmButton = (ImageButton) findViewById(R.id.add_alarm_button);
         mAddAlarmButton.setOnClickListener(this);
-
-
-
-
-
-
 
     }
 
@@ -76,42 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onResume() {
         super.onResume();
 
-        getAlarmsFromShPrefAndConvertFromGson();
-
         showAlarms();
 
-        startAlarmService();
+//        if (isMyServiceRunning(AlarmService.class))
+//            stopAlarmService();
+//        startAlarmService();
 
-
-        Log.d(TAG, "SignInActivity onResume() called");
+        Log.d(TAG, "MainActivity onResume() called");
     }
-
-
-    public void getAlarmsFromShPrefAndConvertFromGson() {
-        String json = sharedPref.getString("Alarms", "empty");
-
-        //if alarms empty adds new default alarm
-        if (json.equals("empty")) {
-            Alarm alarm = new Alarm();
-            mAlarms.add(alarm);
-            String s = gson.toJson(mAlarms);
-            editor.putString("Alarms", s);
-            editor.commit();
-            json = sharedPref.getString("Alarms", "empty");
-        }
-
-        Type type = new TypeToken<ArrayList<Alarm>>() {
-        }.getType();
-        mAlarms = gson.fromJson(json, type);
-
-    }
-
-    public void convertAlarmsToGsonAndSaveToShPref() {
-        String json = gson.toJson(mAlarms);
-        editor.putString("Alarms", json);
-        editor.commit();
-    }
-
 
     @Override
     public void onClick(View view) {
@@ -127,26 +68,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(TAG, "SignInActivity onStart() called");
+        Log.d(TAG, "MainActivity onStart() called");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TAG, "SignInActivity onPause() called");
+        sAlarms.saveAlarms();
+        startAlarmService();
+        Log.d(TAG, "MainActivity onPause() called");
     }
 
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(TAG, "SignInActivity onStop() called");
+        Log.d(TAG, "MainActivity onStop() called");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "SignInActivity onDestroy() called");
+        Log.d(TAG, "MainActivity onDestroy() called");
     }
 
     public void startAlarmService() {
@@ -160,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showAlarms() {
-        mAdapter = new MyRecyclerViewAdapter(mAlarms, this);
+        mAdapter = new RecyclerViewAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -174,10 +117,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemClickListenerStatus(int position) {
-        mAlarms.get(position).status = !mAlarms.get(position).status;
-        convertAlarmsToGsonAndSaveToShPref();
+        sAlarms.getAlarms().get(position).status = !sAlarms.getAlarms().get(position).status;
 
         showAlarms();
         Log.v("log", "onItemClickListenerStatus ok");
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

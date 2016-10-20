@@ -1,7 +1,6 @@
 package com.example.android.lesson4alarm.Adapter;
 
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,13 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.lesson4alarm.Activity.MainActivity;
-import com.example.android.lesson4alarm.Alarm;
 import com.example.android.lesson4alarm.R;
+import com.example.android.lesson4alarm.SingletonAlarm;
 
-import java.util.ArrayList;
-
-public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
-    private ArrayList<Alarm> mAlarms;
+public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
+    private SingletonAlarm sAlarms;
 
     public interface OnItemClick {
         void onItemClickListenerRedactor(int position);
@@ -46,17 +43,17 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MyRecyclerViewAdapter(ArrayList<Alarm> alarms, MainActivity mainActivity) {
-        mAlarms = alarms;
+    public RecyclerViewAdapter(MainActivity mainActivity) {
+        sAlarms = SingletonAlarm.getInstatce();
         positionListener = mainActivity;
 
-        Log.v("log", "MyRecyclerViewAdapter" + mAlarms);
+        Log.v("log", "RecyclerViewAdapter" + sAlarms);
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public MyRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                               int viewType) {
+    public RecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+                                                             int viewType) {
         // create a new view
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.row, parent, false);
@@ -71,7 +68,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        holder.mTextView.setText(String.format("%02d:%02d", mAlarms.get(position).hourOfDay, mAlarms.get(position).minute));
+        holder.mTextView.setText(String.format("%02d:%02d", sAlarms.getAlarms().get(position).hourOfDay, sAlarms.getAlarms().get(position).minute));
         holder.mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +76,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
             }
         });
 
-        if (mAlarms.get(position).status) {
+        if (sAlarms.getAlarms().get(position).status) {
             holder.mImageButton.setImageResource(R.mipmap.alarm_active);
         } else {
             holder.mImageButton.setImageResource(R.mipmap.alarm_not_active);
@@ -101,7 +98,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
         Log.v("log", "get Count ok");
 
-        return mAlarms.size();
+        return sAlarms.getAlarms().size();
 
     }
 
