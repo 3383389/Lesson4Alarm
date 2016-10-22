@@ -13,6 +13,7 @@ public class Alarm {
     public boolean status = false;
     public boolean isRepeat = false;
     public int DAY_OF_WEEK[] = {0, 0, 0, 0, 0, 0, 0};
+    public int DAY_OF_MONTH = 0;
 
     
 }

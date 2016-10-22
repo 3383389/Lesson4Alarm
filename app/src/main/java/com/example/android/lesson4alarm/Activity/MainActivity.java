@@ -42,15 +42,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        sAlarms.saveAlarms();
+        startAlarmService();
+        Log.d(TAG, "MainActivity onPause() called");
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-
         showAlarms();
-
-//        if (isMyServiceRunning(AlarmService.class))
-//            stopAlarmService();
-//        startAlarmService();
-
+        startAlarmService();
         Log.d(TAG, "MainActivity onResume() called");
     }
 
@@ -64,49 +67,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d(TAG, "MainActivity onStart() called");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        sAlarms.saveAlarms();
-        startAlarmService();
-        Log.d(TAG, "MainActivity onPause() called");
-    }
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d(TAG, "MainActivity onStop() called");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "MainActivity onDestroy() called");
-    }
-
     public void startAlarmService() {
         Intent intent = new Intent(this, AlarmService.class);
         startService(intent);
-    }
-
-    public void stopAlarmService() {
-        Intent intent = new Intent(this, AlarmService.class);
-        stopService(intent);
     }
 
     public void showAlarms() {
         mAdapter = new RecyclerViewAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
     }
-
 
     @Override
     public void onItemClickListenerRedactor(int position) {
@@ -118,18 +87,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onItemClickListenerStatus(int position) {
         sAlarms.getAlarms().get(position).status = !sAlarms.getAlarms().get(position).status;
-
         showAlarms();
+        startAlarmService();
         Log.v("log", "onItemClickListenerStatus ok");
     }
 
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

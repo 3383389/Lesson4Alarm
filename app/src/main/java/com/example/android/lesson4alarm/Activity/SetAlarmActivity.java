@@ -1,9 +1,7 @@
 package com.example.android.lesson4alarm.Activity;
 
 import android.app.DialogFragment;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,26 +10,22 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-
 import com.example.android.lesson4alarm.Alarm;
 import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.SingletonAlarm;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.Calendar;
 
 public class SetAlarmActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     TextView mSetTime;
     ToggleButton monday, tuesday, wednesday, thursday, friday, saturday, sunday;
     Button mSetAlarm, mCancel, mDelete;
-    TextView timeTextView;
+    TextView mTimeTextView;
     int position;
     SingletonAlarm sAlarms;
     public Alarm newAlarm;
+    Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,13 +34,11 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
 
         initVariables();
 
-        Intent intent = getIntent();
-        position = intent.getIntExtra("position", -1);
-
         // если активность открыта с данными о позиции будильника - редактируем существующий будильник,
         // если без данных создаем новый
-        if (position != -1) {
+        if (isEditAlarm()) {
             newAlarm = sAlarms.getAlarms().get(position);
+            newAlarm.status = false;
             setStatusOfButtonsDayOdWeek();
             Log.v("log", "redactor alarm ok" + position);
         } else {
@@ -54,7 +46,6 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
         }
 
         setAlarmTime();
-
 
     }
 
@@ -67,9 +58,7 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
-
         setAlarmTime();
-
     }
 
     @Override
@@ -79,9 +68,9 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
                 showTimePickerDialog();
                 break;
             case R.id.set_button_set_alarm:
-                isRepeated();
+                setRepeatedStatus();
                 newAlarm.status = true;
-                if (position != -1) {
+                if (isEditAlarm()) {
                     sAlarms.updateAlarm(position, newAlarm);
                 } else {
                     sAlarms.addAlarm(newAlarm);
@@ -92,7 +81,7 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
                 finish();
                 break;
             case R.id.delete_alarm:
-                if (position != -1) {
+                if (isEditAlarm()) {
                     sAlarms.removeAlarm(position);
                 }
                 finish();
@@ -106,18 +95,38 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
     }
 
     public void setAlarmTime() {
-        timeTextView.setText(String.format("%02d:%02d", newAlarm.hourOfDay, newAlarm.minute));
+        mTimeTextView.setText(String.format("%02d:%02d", newAlarm.hourOfDay, newAlarm.minute));
     }
 
-    public void isRepeated() {
+    public boolean isEditAlarm() {
+        if (position != -1)
+            return true;
+        else
+            return false;
+    }
+
+    public void setRepeatedStatus() {
         for (int i = 0; i < 7; i++) {
-            if (newAlarm.DAY_OF_WEEK[0] != 0) {
+            if (newAlarm.DAY_OF_WEEK[i] != 0) {
                 newAlarm.isRepeat = true;
+                setDayOfMonthForRepeatedAlarm();
                 break;
+            } else {
+                newAlarm.isRepeat = false;
             }
         }
     }
 
+    private void setDayOfMonthForRepeatedAlarm() {
+        Calendar c = Calendar.getInstance();
+        if (newAlarm.hourOfDay == c.get(Calendar.HOUR_OF_DAY) && newAlarm.minute == c.get(Calendar.MINUTE)) {
+            newAlarm.DAY_OF_MONTH = c.get(Calendar.DAY_OF_MONTH);
+        } else {
+            newAlarm.DAY_OF_MONTH = 0;
+        }
+    }
+
+    // запоминаем дни для повторения
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()) {
@@ -220,7 +229,7 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
         mSetAlarm = (Button) findViewById(R.id.set_button_set_alarm);
         mCancel = (Button) findViewById(R.id.cancel_button_set_alarm);
         mDelete = (Button) findViewById(R.id.delete_alarm);
-        timeTextView = (TextView) findViewById(R.id.set_time_alarm);
+        mTimeTextView = (TextView) findViewById(R.id.set_time_alarm);
         monday = (ToggleButton) findViewById(R.id.monday_button);
         tuesday = (ToggleButton) findViewById(R.id.tuesday_button);
         wednesday = (ToggleButton) findViewById(R.id.wednesday_button);
@@ -240,6 +249,9 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
         friday.setOnCheckedChangeListener(this);
         saturday.setOnCheckedChangeListener(this);
         sunday.setOnCheckedChangeListener(this);
+
+        intent = getIntent();
+        position = intent.getIntExtra("position", -1);
     }
 
 }
