@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
 import com.example.android.lesson4alarm.Activity.AlarmActivity;
 import com.example.android.lesson4alarm.Activity.SetAlarmActivity;
 import com.example.android.lesson4alarm.Alarm;
@@ -108,25 +109,18 @@ public class AlarmService extends Service {
     // проверка условий для одиночного будильника
     private boolean isTimeForRepeatedAlarm(Alarm alarm) {
         Calendar currentCalendar = Calendar.getInstance();
-        if (isCurrentDay(alarm) &&
+        return isCurrentDay(alarm) &&
                 (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
                         currentCalendar.get(Calendar.MINUTE) == alarm.minute) &&
-                currentCalendar.get(Calendar.DAY_OF_MONTH) != alarm.DAY_OF_MONTH) {
-            return true;
-        }
-        return false;
+                currentCalendar.get(Calendar.DAY_OF_MONTH) != alarm.DAY_OF_MONTH;
     }
 
     // проверка условий для повторяемого по дням будильника
     private boolean isTimeForSingleAlarm(Alarm alarm) {
         Calendar currentCalendar = Calendar.getInstance();
-        if (!alarm.isRepeat && (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
+        return !alarm.isRepeat && (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
                 currentCalendar.get(Calendar.MINUTE) == alarm.minute)
-                && currentCalendar.get(Calendar.DAY_OF_MONTH) == alarm.DAY_OF_MONTH) {
-            return true;
-        } else {
-            return false;
-        }
+                && currentCalendar.get(Calendar.DAY_OF_MONTH) == alarm.DAY_OF_MONTH;
     }
 
     private boolean isCurrentDay(Alarm alarm) {
@@ -152,17 +146,20 @@ public class AlarmService extends Service {
         Log.v("serv", "event ok");
         switch (event.message) {
             case DELETE_ALARM:
-                sAlarms.removeAlarm(event.position);
+                if (event.position != null)
+                    sAlarms.removeAlarm(event.position);
                 sAlarms.saveAlarms();
                 Log.v("serv", "del ok");
                 break;
             case UPDATE_ALARM:
-                sAlarms.updateAlarm(event.position, event.alarm);
+                if (event.position != null && event.alarm != null)
+                    sAlarms.updateAlarm(event.position, event.alarm);
                 sAlarms.saveAlarms();
                 Log.v("serv", "update ok");
                 break;
             case ADD_ALARM:
-                sAlarms.addAlarm(event.alarm);
+                if (event.alarm != null)
+                    sAlarms.addAlarm(event.alarm);
                 sAlarms.saveAlarms();
                 Log.v("serv", "add ok");
                 break;
@@ -171,12 +168,15 @@ public class AlarmService extends Service {
                 Log.v("serv", "save ok");
                 break;
             case REDACTOR_ALARM:
-                startRedactorActivity(event.position);
+                if (event.position != null)
+                    startRedactorActivity(event.position);
                 Log.v("serv", "save ok");
                 break;
             case CHANGE_STATUS:
-                sAlarms.changeStatus(event.position);
+                if (event.position != null)
+                    sAlarms.changeStatus(event.position);
                 sAlarms.saveAlarms();
+                break;
         }
     }
 
