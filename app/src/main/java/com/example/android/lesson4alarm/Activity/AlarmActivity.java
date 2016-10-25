@@ -39,8 +39,8 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         player.start();
 
         mVibro = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        long[] pattern = {0, 200, 100, 300, 300};
-        mVibro.vibrate(pattern, 0);
+        long[] vibroPattern = {0, 200, 100, 300, 300};
+        mVibro.vibrate(vibroPattern, 0);
 
     }
 
@@ -50,14 +50,8 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
             case R.id.alrm_off_button:
                 mVibro.cancel();
                 player.stop();
-                startAlarmService();
                 finish();
                 break;
         }
-    }
-
-    public void startAlarmService() {
-        Intent intent = new Intent(this, AlarmService.class);
-        startService(intent);
     }
 }

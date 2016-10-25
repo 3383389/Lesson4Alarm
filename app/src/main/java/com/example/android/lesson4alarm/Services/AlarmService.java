@@ -1,52 +1,61 @@
 package com.example.android.lesson4alarm.Services;
 
 import android.app.IntentService;
+import android.app.Service;
 import android.content.Intent;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import com.example.android.lesson4alarm.Activity.AlarmActivity;
+import com.example.android.lesson4alarm.Activity.SetAlarmActivity;
 import com.example.android.lesson4alarm.Alarm;
+import com.example.android.lesson4alarm.EventBus.MessageEvent;
 import com.example.android.lesson4alarm.SingletonAlarm;
-import java.util.Calendar;
 
-public class AlarmService extends IntentService {
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class AlarmService extends Service {
 
     SingletonAlarm sAlarms;
+    Timer timer;
 
-    public AlarmService() {
-        super("AlarmService");
-    }
+    public class CheckAlarms extends TimerTask {
 
+        Calendar currentCalendar;
 
-    @Override
-    protected void onHandleIntent(Intent intent) {
-        Log.v("serv", "onHandleIntent");
-        Calendar currentCalendar = Calendar.getInstance();
+        @Override
+        public void run() {
+            Log.v("serv", "CheckAlarms Run");
 
-        // если список будильников не пустой работает проверка будильников
-        while (!sAlarms.getAlarms().isEmpty()) {
-            synchronized (this) {
-                // проверяется кажидый из существующих будильников
-                for (Alarm alarm : sAlarms.getAlarms()) {
-                    Log.v("serv", "check");
-                    if (alarm.status) {
-                        Log.v("serv", "status ok");
-                        if (isTimeForSingleAlarm(alarm)) {
-                            alarm.status = false;
-                            Log.v("serv", "start alarm single");
-                            startAlarm();
-                        } else if (isTimeForRepeatedAlarm(alarm)) {
-                            alarm.DAY_OF_MONTH = currentCalendar.get(Calendar.DAY_OF_MONTH);
-                            startAlarm();
-                            Log.v("serv", "start alarm repeated");
+            currentCalendar = Calendar.getInstance();
+
+            // если список будильников не пустой работает проверка будильников
+            if (!sAlarms.getAlarms().isEmpty()) {
+                synchronized (this) {
+                    // проверяется кажидый из существующих будильников
+                    for (Alarm alarm : sAlarms.getAlarms()) {
+                        Log.v("serv", "check");
+                        if (alarm.status) {
+                            Log.v("serv", "status ok");
+                            if (isTimeForSingleAlarm(alarm)) {
+                                alarm.status = false;
+                                Log.v("serv", "start alarm single");
+                                startAlarm();
+                            } else if (isTimeForRepeatedAlarm(alarm)) {
+                                alarm.DAY_OF_MONTH = currentCalendar.get(Calendar.DAY_OF_MONTH);
+                                startAlarm();
+                                Log.v("serv", "start alarm repeated");
+                            }
                         }
                     }
                 }
             }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
         }
     }
 
@@ -54,13 +63,36 @@ public class AlarmService extends IntentService {
     public void onCreate() {
         super.onCreate();
         Log.v("serv", "onCreate");
+        EventBus.getDefault().register(this);
         sAlarms = SingletonAlarm.initInstance(this);
 
     }
 
     @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        Log.v("serv", "onStartCommand ok");
+
+        if (timer != null) {
+            timer.cancel();
+        }
+
+        timer = new Timer();
+        timer.schedule(new CheckAlarms(), 1000, 20000);
+
         return START_STICKY;
     }
 
@@ -106,6 +138,46 @@ public class AlarmService extends IntentService {
             }
         }
         return false;
+    }
+
+    public void startRedactorActivity(int position) {
+        Intent intent = new Intent(this, SetAlarmActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("position", position);
+        startActivity(intent);
+    }
+
+    @Subscribe
+    public void onMessageEvent(MessageEvent event) {
+        Log.v("serv", "event ok");
+        switch (event.message) {
+            case DELETE_ALARM:
+                sAlarms.removeAlarm(event.position);
+                sAlarms.saveAlarms();
+                Log.v("serv", "del ok");
+                break;
+            case UPDATE_ALARM:
+                sAlarms.updateAlarm(event.position, event.alarm);
+                sAlarms.saveAlarms();
+                Log.v("serv", "update ok");
+                break;
+            case ADD_ALARM:
+                sAlarms.addAlarm(event.alarm);
+                sAlarms.saveAlarms();
+                Log.v("serv", "add ok");
+                break;
+            case SAVE_ALARM:
+                sAlarms.saveAlarms();
+                Log.v("serv", "save ok");
+                break;
+            case REDACTOR_ALARM:
+                startRedactorActivity(event.position);
+                Log.v("serv", "save ok");
+                break;
+            case CHANGE_STATUS:
+                sAlarms.changeStatus(event.position);
+                sAlarms.saveAlarms();
+        }
     }
 
 }

@@ -89,4 +89,8 @@ public class SingletonAlarm {
         mAlarms.add(a);
     }
 
+    public void changeStatus(int position) {
+        mAlarms.get(position).status = !mAlarms.get(position).status;
+    }
+
 }

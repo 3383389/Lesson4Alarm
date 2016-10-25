@@ -15,7 +15,7 @@ public class MyApplication extends Application {
         super.onCreate();
 
         SingletonAlarm.initInstance(this);
-
+        // start service
         Intent intent = new Intent(this, AlarmService.class);
         startService(intent);
     }

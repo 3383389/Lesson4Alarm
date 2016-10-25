@@ -8,12 +8,23 @@ import java.util.ArrayList;
 
 public class Alarm {
 
-    public int hourOfDay = 12;
-    public int minute = 0;
-    public boolean status = false;
-    public boolean isRepeat = false;
-    public int DAY_OF_WEEK[] = {0, 0, 0, 0, 0, 0, 0};
-    public int DAY_OF_MONTH = 0;
+    public int hourOfDay;
+    public int minute;
+    public boolean status;
+    public boolean isRepeat;
+    public int DAY_OF_WEEK[];
+    public int DAY_OF_MONTH;
 
-    
+    public Alarm() {
+        hourOfDay = 12;
+        minute = 0;
+        status = false;
+        isRepeat = false;
+        DAY_OF_WEEK = new int[]{
+                0, 0, 0, 0, 0, 0, 0
+        };
+        DAY_OF_MONTH = 0;
+    }
+
+
 }

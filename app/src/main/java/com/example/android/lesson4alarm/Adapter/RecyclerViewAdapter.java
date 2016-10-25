@@ -9,20 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.example.android.lesson4alarm.Activity.MainActivity;
+import com.example.android.lesson4alarm.EventBus.MessageEvent;
+import com.example.android.lesson4alarm.EventBus.Messages;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.SingletonAlarm;
+import org.greenrobot.eventbus.EventBus;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
     private SingletonAlarm sAlarms;
-
-    public interface OnItemClick {
-        void onItemClickListenerRedactor(int position);
-        void onItemClickListenerStatus(int position);
-    }
-
-    OnItemClick positionListener;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -43,9 +37,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecyclerViewAdapter(MainActivity mainActivity) {
+    public RecyclerViewAdapter() {
         sAlarms = SingletonAlarm.getInstatce();
-        positionListener = mainActivity;
 
         Log.v("log", "RecyclerViewAdapter" + sAlarms);
     }
@@ -61,35 +54,40 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         ViewHolder vh = new ViewHolder(view);
 
-        Log.v("log", "onCreateviewHolder"+ view);
+        Log.v("log", "onCreateviewHolder" + view);
         return vh;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         holder.mTextView.setText(String.format("%02d:%02d", sAlarms.getAlarms().get(position).hourOfDay, sAlarms.getAlarms().get(position).minute));
         holder.mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                positionListener.onItemClickListenerRedactor(position);
+                EventBus.getDefault().post(new MessageEvent(Messages.REDACTOR_ALARM, position));
             }
         });
 
+        setStatusImage(holder, position);
+
+        holder.mImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EventBus.getDefault().post(new MessageEvent(Messages.CHANGE_STATUS, position));
+                setStatusImage(holder, position);
+            }
+        });
+        Log.v("log", "onBind ok");
+
+    }
+
+    private void setStatusImage(ViewHolder holder, int position) {
         if (sAlarms.getAlarms().get(position).status) {
             holder.mImageButton.setImageResource(R.mipmap.alarm_active);
         } else {
             holder.mImageButton.setImageResource(R.mipmap.alarm_not_active);
         }
-
-        holder.mImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                positionListener.onItemClickListenerStatus(position);
-            }
-        });
-        Log.v("log", "onBind ok");
-
     }
 
     // Return the size of your dataset (invoked by the layout manager)

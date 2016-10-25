@@ -10,12 +10,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import com.example.android.lesson4alarm.Adapter.RecyclerViewAdapter;
+import com.example.android.lesson4alarm.EventBus.MessageEvent;
+import com.example.android.lesson4alarm.EventBus.Messages;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.Services.AlarmService;
 import com.example.android.lesson4alarm.SingletonAlarm;
 import android.support.v7.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, RecyclerViewAdapter.OnItemClick {
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "log";
 
@@ -41,19 +46,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
+
     @Override
     public void onPause() {
-        super.onPause();
-        sAlarms.saveAlarms();
-        startAlarmService();
+
+        EventBus.getDefault().post(new MessageEvent(Messages.SAVE_ALARM));
         Log.d(TAG, "MainActivity onPause() called");
+        super.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        EventBus.getDefault().post(new MessageEvent(Messages.SAVE_ALARM));
         showAlarms();
-        startAlarmService();
         Log.d(TAG, "MainActivity onResume() called");
     }
 
@@ -67,28 +74,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void startAlarmService() {
-        Intent intent = new Intent(this, AlarmService.class);
-        startService(intent);
-    }
-
     public void showAlarms() {
-        mAdapter = new RecyclerViewAdapter(this);
+        mAdapter = new RecyclerViewAdapter();
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    @Override
     public void onItemClickListenerRedactor(int position) {
         Intent intent = new Intent(this, SetAlarmActivity.class);
         intent.putExtra("position", position);
         startActivity(intent);
     }
 
-    @Override
+
     public void onItemClickListenerStatus(int position) {
         sAlarms.getAlarms().get(position).status = !sAlarms.getAlarms().get(position).status;
         showAlarms();
-        startAlarmService();
         Log.v("log", "onItemClickListenerStatus ok");
     }
 

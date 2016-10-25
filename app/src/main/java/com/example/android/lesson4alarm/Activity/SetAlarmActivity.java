@@ -11,21 +11,27 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import com.example.android.lesson4alarm.Alarm;
+import com.example.android.lesson4alarm.EventBus.MessageEvent;
+import com.example.android.lesson4alarm.EventBus.Messages;
 import com.example.android.lesson4alarm.Fragments.DialodFragmentSetTime;
 import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.SingletonAlarm;
+
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.Calendar;
 
 public class SetAlarmActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
-    TextView mSetTime;
-    ToggleButton monday, tuesday, wednesday, thursday, friday, saturday, sunday;
-    Button mSetAlarm, mCancel, mDelete;
-    TextView mTimeTextView;
-    int position;
-    SingletonAlarm sAlarms;
+
+    private TextView mSetTime;
+    private ToggleButton monday, tuesday, wednesday, thursday, friday, saturday, sunday;
+    private Button mSetAlarm, mCancel, mDelete;
+    private TextView mTimeTextView;
+    private SingletonAlarm sAlarms;
     public Alarm newAlarm;
-    Intent intent;
+    private Intent intent;
+    private int position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +58,6 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onPause() {
         super.onPause();
-        sAlarms.saveAlarms();
     }
 
     @Override
@@ -71,9 +76,9 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
                 setRepeatedStatus();
                 newAlarm.status = true;
                 if (isEditAlarm()) {
-                    sAlarms.updateAlarm(position, newAlarm);
+                    EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_ALARM, newAlarm, position));
                 } else {
-                    sAlarms.addAlarm(newAlarm);
+                    EventBus.getDefault().post(new MessageEvent(Messages.ADD_ALARM, newAlarm));
                 }
                 finish();
                 break;
@@ -82,7 +87,7 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.delete_alarm:
                 if (isEditAlarm()) {
-                    sAlarms.removeAlarm(position);
+                    EventBus.getDefault().post(new MessageEvent(Messages.DELETE_ALARM, position));
                 }
                 finish();
                 break;
