@@ -42,10 +42,11 @@ public class DialodFragmentSetTime extends DialogFragment implements TimePickerD
     // если выбраное время меньше или равняется текущему, дата переносится на следующий день (нужно для одиночных будильников)
     private void setDayOfMonth(int hourOfDay, int minute) {
         Calendar calendar = Calendar.getInstance();
-        if (calendar.get(Calendar.HOUR_OF_DAY) >= hourOfDay && calendar.get(Calendar.MINUTE) < minute) {
+        if (calendar.get(Calendar.HOUR_OF_DAY) > hourOfDay ||
+                (calendar.get(Calendar.HOUR_OF_DAY) == hourOfDay && calendar.get(Calendar.MINUTE) >= minute)) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
             setAlarmActivity.newAlarm.DAY_OF_MONTH = calendar.get(Calendar.DAY_OF_MONTH);
         } else {
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
             setAlarmActivity.newAlarm.DAY_OF_MONTH = calendar.get(Calendar.DAY_OF_MONTH);
         }
     }

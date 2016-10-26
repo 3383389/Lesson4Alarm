@@ -22,6 +22,7 @@ import java.util.TimerTask;
 
 public class AlarmService extends Service {
 
+    private final int TARDINESS = 10; // опоздание 10 мин
     SingletonAlarm sAlarms;
     Timer timer;
 
@@ -106,21 +107,38 @@ public class AlarmService extends Service {
 
     }
 
-    // проверка условий для одиночного будильника
+    // проверка условий для повторяемого по дням будильника
     private boolean isTimeForRepeatedAlarm(Alarm alarm) {
         Calendar currentCalendar = Calendar.getInstance();
-        return isCurrentDay(alarm) &&
+        if (isCurrentDay(alarm) &&
                 (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
-                        currentCalendar.get(Calendar.MINUTE) == alarm.minute) &&
-                currentCalendar.get(Calendar.DAY_OF_MONTH) != alarm.DAY_OF_MONTH;
+                        (currentCalendar.get(Calendar.MINUTE) - alarm.minute >= 0 && currentCalendar.get(Calendar.MINUTE) - alarm.minute < TARDINESS))
+                && currentCalendar.get(Calendar.DAY_OF_MONTH) != alarm.DAY_OF_MONTH) {
+            return true;
+        } else if (isCurrentDay(alarm) &&
+                (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay + 1 &&
+                        ((currentCalendar.get(Calendar.MINUTE) - alarm.minute + TARDINESS) % 60 >= 0 && (currentCalendar.get(Calendar.MINUTE) - alarm.minute + TARDINESS) % 60 < TARDINESS))
+                && currentCalendar.get(Calendar.DAY_OF_MONTH) != alarm.DAY_OF_MONTH) {
+            return true;
+        }
+        return false;
     }
 
-    // проверка условий для повторяемого по дням будильника
+    // проверка условий для одиночного будильника
     private boolean isTimeForSingleAlarm(Alarm alarm) {
         Calendar currentCalendar = Calendar.getInstance();
-        return !alarm.isRepeat && (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
-                currentCalendar.get(Calendar.MINUTE) == alarm.minute)
-                && currentCalendar.get(Calendar.DAY_OF_MONTH) == alarm.DAY_OF_MONTH;
+        if (!alarm.isRepeat &&
+                (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay &&
+                        (currentCalendar.get(Calendar.MINUTE) - alarm.minute >= 0 && currentCalendar.get(Calendar.MINUTE) - alarm.minute < TARDINESS))
+                && currentCalendar.get(Calendar.DAY_OF_MONTH) == alarm.DAY_OF_MONTH) {
+            return true;
+        } else if (!alarm.isRepeat &&
+                (currentCalendar.get(Calendar.HOUR_OF_DAY) == alarm.hourOfDay + 1 &&
+                        ((currentCalendar.get(Calendar.MINUTE) - alarm.minute + TARDINESS) % 60 >= 0 && (currentCalendar.get(Calendar.MINUTE) - alarm.minute + TARDINESS) % 60 < TARDINESS))
+                && currentCalendar.get(Calendar.DAY_OF_MONTH) == alarm.DAY_OF_MONTH) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isCurrentDay(Alarm alarm) {
@@ -170,7 +188,7 @@ public class AlarmService extends Service {
             case REDACTOR_ALARM:
                 if (event.position != null)
                     startRedactorActivity(event.position);
-                Log.v("serv", "save ok");
+                Log.v("serv", "redactor ok");
                 break;
             case CHANGE_STATUS:
                 if (event.position != null)

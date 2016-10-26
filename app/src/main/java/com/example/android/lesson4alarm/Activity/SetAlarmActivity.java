@@ -44,7 +44,6 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
         // если без данных создаем новый
         if (isEditAlarm()) {
             newAlarm = sAlarms.getAlarms().get(position);
-            newAlarm.status = false;
             setStatusOfButtonsDayOdWeek();
             Log.v("log", "redactor alarm ok" + position);
         } else {
@@ -124,7 +123,7 @@ public class SetAlarmActivity extends AppCompatActivity implements View.OnClickL
 
     private void setDayOfMonthForRepeatedAlarm() {
         Calendar c = Calendar.getInstance();
-        if (newAlarm.hourOfDay == c.get(Calendar.HOUR_OF_DAY) && newAlarm.minute == c.get(Calendar.MINUTE)) {
+        if (newAlarm.hourOfDay < c.get(Calendar.HOUR_OF_DAY) || (newAlarm.hourOfDay == c.get(Calendar.HOUR_OF_DAY) && newAlarm.minute <= c.get(Calendar.MINUTE))) {
             newAlarm.DAY_OF_MONTH = c.get(Calendar.DAY_OF_MONTH);
         } else {
             newAlarm.DAY_OF_MONTH = 0;
