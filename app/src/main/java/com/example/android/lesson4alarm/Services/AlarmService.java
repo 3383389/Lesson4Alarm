@@ -1,16 +1,21 @@
 package com.example.android.lesson4alarm.Services;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import com.example.android.lesson4alarm.Activity.AlarmActivity;
+import com.example.android.lesson4alarm.Activity.MainActivity;
 import com.example.android.lesson4alarm.Activity.SetAlarmActivity;
 import com.example.android.lesson4alarm.Alarm;
 import com.example.android.lesson4alarm.EventBus.MessageEvent;
+import com.example.android.lesson4alarm.R;
 import com.example.android.lesson4alarm.SingletonAlarm;
 
 import org.greenrobot.eventbus.EventBus;
@@ -22,6 +27,7 @@ import java.util.TimerTask;
 
 public class AlarmService extends Service {
 
+    private static final int NOTIFICATION_SERVICE_START = 10;
     private final int TARDINESS = 10; // опоздание 10 мин
     SingletonAlarm sAlarms;
     Timer timer;
@@ -61,6 +67,19 @@ public class AlarmService extends Service {
         }
     }
 
+    public void runForeground() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, NOTIFICATION_SERVICE_START,
+                notificationIntent, 0);
+        Notification notification = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.alarm_active)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(NOTIFICATION_SERVICE_START, notification);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -72,6 +91,7 @@ public class AlarmService extends Service {
 
     @Override
     public void onDestroy() {
+        stopForeground(true);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -88,6 +108,8 @@ public class AlarmService extends Service {
 
         Log.v("serv", "onStartCommand ok");
 
+        runForeground();
+
         if (timer != null) {
             timer.cancel();
         }
@@ -95,7 +117,7 @@ public class AlarmService extends Service {
         timer = new Timer();
         timer.schedule(new CheckAlarms(), 1000, 20000);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     public void startAlarm() {

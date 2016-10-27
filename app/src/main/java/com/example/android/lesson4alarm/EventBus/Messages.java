@@ -9,6 +9,4 @@ public enum Messages {
     SAVE_ALARM,
     REDACTOR_ALARM,
     CHANGE_STATUS
-
-
 }

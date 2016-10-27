@@ -1,7 +1,5 @@
 package com.example.android.lesson4alarm.Activity;
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,12 +11,9 @@ import com.example.android.lesson4alarm.Adapter.RecyclerViewAdapter;
 import com.example.android.lesson4alarm.EventBus.MessageEvent;
 import com.example.android.lesson4alarm.EventBus.Messages;
 import com.example.android.lesson4alarm.R;
-import com.example.android.lesson4alarm.Services.AlarmService;
 import com.example.android.lesson4alarm.SingletonAlarm;
 import android.support.v7.widget.RecyclerView;
-
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
